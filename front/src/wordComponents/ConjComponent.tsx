@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { BaseWord } from '../utils/WordInterfaces';
 import { fetchWordsFromServer } from '../utils/WordGetter.tsx';
+import type {StateType} from "../AppState.tsx";
 
 
 type Props = {
-    onWordSelect: (word: BaseWord, meta: null) => void;
+    onWordSelect: (word: BaseWord, meta: null, state: StateType) => void;
 };
 
 export function ConjComponent({ onWordSelect }: Props) {
@@ -15,9 +16,9 @@ export function ConjComponent({ onWordSelect }: Props) {
         fetchWordsFromServer('conj').then(setWords);
     }, []);
 
-    const handleConfirm = () => {
+    const handleConfirm = (state: StateType) => {
         if (selectedWord) {
-            onWordSelect(selectedWord,  null );
+            onWordSelect(selectedWord,  null, state);
             setSelectedWord(null);
         }
     };
@@ -44,9 +45,17 @@ export function ConjComponent({ onWordSelect }: Props) {
                 <div className="options-panel">
                     <h4>Konfiguracja: {selectedWord.word}</h4>
 
-                    <button className="btn-confirm" onClick={handleConfirm}>
-                        Zatwierdź Spójnik
-                    </button>
+                    <div className="buttons">
+                        <button className="btn-confirm" onClick={() => {handleConfirm('NOUN')}}>
+                            Przejdź do Rzeczownika
+                        </button>
+                        <button className="btn-confirm" onClick={() => {handleConfirm('ADJ')}}>
+                            Przejdź do Przymiotnika
+                        </button>
+                        <button className="btn-confirm" onClick={() => {handleConfirm('VERB')}}>
+                            Przejdź do Czasownika
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

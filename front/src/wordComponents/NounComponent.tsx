@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { BaseWord } from '../utils/WordInterfaces';
 import { fetchWordsFromServer } from '../utils/WordGetter.tsx';
-import type {NounMeta} from "../utils/WordInterfaces";
+import type { NounMeta } from "../utils/WordInterfaces";
+import type { StateType } from "../AppState.tsx";
 
 type Props = {
-    onWordSelect: (word: BaseWord, meta: NounMeta) => void;
+    onWordSelect: (word: BaseWord, meta: NounMeta, state: StateType) => void;
 };
 
 export function NounComponent({ onWordSelect }: Props) {
@@ -16,9 +17,9 @@ export function NounComponent({ onWordSelect }: Props) {
         fetchWordsFromServer('noun').then(setWords);
     }, []);
 
-    const handleConfirm = () => {
+    const handleConfirm = (state: StateType) => {
         if (selectedWord) {
-            onWordSelect(selectedWord, { count });
+            onWordSelect(selectedWord, { count }, state);
             setSelectedWord(null);
             setCount('singular');
         }
@@ -45,20 +46,34 @@ export function NounComponent({ onWordSelect }: Props) {
             {selectedWord && (
                 <div className="options-panel">
                     <h4>Konfiguracja: {selectedWord.word}</h4>
-                    <label>
-                        Liczba:
-                        <select
-                            value={count}
-                            onChange={(e) => setCount(e.target.value as 'singular' | 'plural')}
-                        >
-                            <option value="singular">Pojedyncza</option>
-                            <option value="plural">Mnoga</option>
-                        </select>
-                    </label>
 
-                    <button className="btn-confirm" onClick={handleConfirm}>
-                        Zatwierdź Rzeczownik
-                    </button>
+                    <div className="form-group">
+                        <label>
+                            Liczba:
+                            <select
+                                value={count}
+                                onChange={(e) => setCount(e.target.value as 'singular' | 'plural')}
+                            >
+                                <option value="singular">Pojedyncza</option>
+                                <option value="plural">Mnoga</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div className="buttons">
+                        <button className="btn-confirm" onClick={() => {handleConfirm('VERB')}}>
+                            Przejdź do Czasownika
+                        </button>
+                        <button className="btn-confirm" onClick={() => {handleConfirm('PREP')}}>
+                            Przejdź do Przyimka (Miejsce)
+                        </button>
+                        <button className="btn-confirm" onClick={() => {handleConfirm('CONJ')}}>
+                            Przejdź do Spójnika (Łączenie)
+                        </button>
+                        <button className="btn-confirm" onClick={() => {handleConfirm('END')}}>
+                            Koniec Zdania
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

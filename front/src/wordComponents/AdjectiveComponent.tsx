@@ -3,9 +3,10 @@ import type { BaseWord } from '../utils/WordInterfaces';
 import { fetchWordsFromServer } from '../utils/WordGetter.tsx';
 
 import type {AdjMeta, Degree} from "../utils/WordInterfaces";
+import type {StateType} from "../AppState.tsx";
 
 type Props = {
-    onWordSelect: (word: BaseWord, meta: AdjMeta) => void;
+    onWordSelect: (word: BaseWord, meta: AdjMeta, state: StateType) => void;
 };
 
 export function AdjectiveComponent({ onWordSelect }: Props) {
@@ -22,9 +23,9 @@ export function AdjectiveComponent({ onWordSelect }: Props) {
         fetchWordsFromServer('adj').then(setWords);
     }, []);
 
-    const handleConfirm = () => {
+    const handleConfirm = (state: StateType) => {
         if (selectedWord) {
-            onWordSelect(selectedWord, meta);
+            onWordSelect(selectedWord, meta, state);
             setSelectedWord(null);
             setmeta(startingMeta);
         }
@@ -51,21 +52,30 @@ export function AdjectiveComponent({ onWordSelect }: Props) {
             {selectedWord && (
                 <div className="options-panel">
                     <h4>Konfiguracja: {selectedWord.word}</h4>
-                    <label>
-                        Stopień:
-                        <select
-                            value={meta.degree}
-                            onChange={(e) => setmeta({degree : e.target.value as Degree})}
-                        >
-                            <option value="singular">Równy</option>
-                            <option value="plural">Wyższy</option>
-                            <option value="plural">Najwyższy</option>
-                        </select>
-                    </label>
-
-                    <button className="btn-confirm" onClick={handleConfirm}>
-                        Zatwierdź Przymiotnik
-                    </button>
+                    <div className="form-group">
+                        <label>
+                            Stopień:
+                            <select
+                                value={meta.degree}
+                                onChange={(e) => setmeta({degree : e.target.value as Degree})}
+                            >
+                                <option value="singular">Równy</option>
+                                <option value="plural">Wyższy</option>
+                                <option value="plural">Najwyższy</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div className="buttons">
+                        <button className="btn-confirm" onClick={() => {handleConfirm('NOUN')}}>
+                            Przejdź do Rzeczownika
+                        </button>
+                        <button className="btn-confirm" onClick={() => {handleConfirm('CONJ')}}>
+                            Przejdź do Spójnika - łączenie rzeczowników
+                        </button>
+                        <button className="btn-confirm" onClick={() => {handleConfirm('END')}}>
+                            Koniec Zdania
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

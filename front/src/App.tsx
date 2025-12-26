@@ -8,15 +8,7 @@ import {ConjComponent} from "./wordComponents/ConjComponent.tsx";
 import {VerbComponent} from "./wordComponents/VerbComponent.tsx";
 import {EndComponent} from "./wordComponents/EndComponent.tsx";
 import type {BaseWord, Word, Meta} from './utils/WordInterfaces.tsx'
-
-
-
-type AppState = {
-    state : stateType,
-    stateStep: number
-}
-
-type stateType = 'START' | 'NOUN' | 'VERB' | 'ADJ' | 'PREP' | 'CONJ' | 'END'
+import type {AppState, StateType} from "./AppState.tsx";
 
 function App() {
     const startState : AppState = {
@@ -33,24 +25,25 @@ function App() {
 
     function handleAppStateChange() {
 
-        if (words.length - 1 === 0) {
+        if (words.length <= 0 || appState.stateStep === 1) {
             setAppState(startState)
             setWords([])
+        }else {
+            const currentWord: Word = words[words.length - 1]
+
+            setAppState((prevState: AppState) => {
+                return {
+                    state: currentWord.type.toUpperCase() as StateType,
+                    stateStep: prevState.stateStep - 1
+                }
+            })
+            setWords(words.slice(0, -1))
         }
-
-        setWords(words.slice(0, appState.stateStep))
-
-        const currentWord: Word = words[words.length - 1]
-
-        setAppState((prevState: AppState) => { return {
-            state: currentWord.type.toUpperCase() as stateType,
-            stateStep: prevState.stateStep - 1
-        }})
     }
 
-    function start(){
+    function start(state: StateType) {
         setAppState({
-            state : "NOUN",
+            state : state,
             stateStep: 1
         })
     }
@@ -60,7 +53,7 @@ function App() {
         setAppState(startState)
     }
 
-    function createWord(baseWord: BaseWord, meta: Meta){
+    function createWord(baseWord: BaseWord, meta: Meta, nextState: StateType){
         const newWord: Word = {
             id: words.length + 1,
             ...baseWord,
@@ -69,21 +62,11 @@ function App() {
 
         const newState: AppState = {
             stateStep: appState.stateStep + 1,
-            state: baseWord.type.toUpperCase() as stateType,
+            state: nextState,
         }
 
         setAppState(newState)
         setWords([...words, newWord])
-    }
-
-    function nextState(nextState: string){
-
-        const newState: AppState = {
-            stateStep: appState.stateStep + 1,
-            state: nextState.toUpperCase() as stateType,
-        }
-
-        setAppState(newState)
     }
 
     return (

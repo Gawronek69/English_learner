@@ -3,9 +3,10 @@ import type { BaseWord } from '../utils/WordInterfaces';
 import { fetchWordsFromServer } from '../utils/WordGetter.tsx';
 
 import type {VerbMeta, Person, Tense} from "../utils/WordInterfaces";
+import type {StateType} from "../AppState.tsx";
 
 type Props = {
-    onWordSelect: (word: BaseWord, meta: VerbMeta) => void;
+    onWordSelect: (word: BaseWord, meta: VerbMeta, state: StateType) => void;
 };
 
 export function VerbComponent({ onWordSelect }: Props) {
@@ -22,9 +23,9 @@ export function VerbComponent({ onWordSelect }: Props) {
         fetchWordsFromServer('verb').then(setWords);
     }, []);
 
-    const handleConfirm = () => {
+    const handleConfirm = (state: StateType) => {
         if (selectedWord && meta) {
-            onWordSelect(selectedWord, meta);
+            onWordSelect(selectedWord, meta, state);
             setSelectedWord(null);
             setMeta(startingMeta);
         }
@@ -106,9 +107,20 @@ export function VerbComponent({ onWordSelect }: Props) {
                         </label>
                     </div>
 
-                    <button className="btn-confirm" onClick={handleConfirm}>
-                        Zatwierdź Czasownik
-                    </button>
+                     <div className="buttons">
+                        <button className="btn-confirm" onClick={() => {handleConfirm('NOUN')}}>
+                            Przejdź do Rzeczownika
+                        </button>
+                        <button className="btn-confirm" onClick={() => {handleConfirm('ADJ')}}>
+                            Przejdź do Przymiotnika
+                        </button>
+                         <button className="btn-confirm" onClick={() => {handleConfirm('PREP')}}>
+                            Przejdź do Przyimka
+                        </button>
+                        <button className="btn-confirm" onClick={() => {handleConfirm('END')}}>
+                            Koniec Zdania
+                        </button>
+                    </div>
                 </div>
             )}
         </div>
