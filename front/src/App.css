@@ -312,3 +312,28 @@ button[onClick*="handleAppStateChange"]:hover {
     width: 100%;
   }
 }
+
+.return-btn {
+  margin-left: 50px;
+  background-color: transparent;
+  color: #555;
+  border: 1px solid #ccc;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: all 0.2s ease-in-out;
+}
+
+.return-btn:hover {
+  border-color: #333;
+  color: #000;
+  background-color: #f5f5f5;
+  transform: translateX(-3px);
+}
+
+.return-btn:active {
+  transform: translateX(-1px);
+  background-color: #e0e0e0;
+}

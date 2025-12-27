@@ -96,7 +96,7 @@ function App() {
                 <EndComponent finalWords={words} onReset={reset}/>
             )}
             {appState.stateStep > 0 && (
-                <button onClick = {handleAppStateChange}></button>
+                <button className='return-btn' onClick = {handleAppStateChange}>Go back</button>
             )}
             <footer>
 

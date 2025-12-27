@@ -9,13 +9,16 @@ type Props = {
 export function EndComponent({ finalWords, onReset }: Props) {
     const [isSending, setIsSending] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [wordsTransformed, setWordsTransformed] = useState<boolean>(false);
+    const [transformedWords, setTransformedWords] = useState<string[]>([]);
+
 
     const handleSendAndReset = async () => {
         setIsSending(true);
         setError(null);
 
         try {
-            const API_URL = 'http://localhost:5000/api/check-sentence';
+            const API_URL = `http://127.0.0.1:8000/sentence`;
 
             const response = await fetch(API_URL, {
                 method: 'POST',
@@ -29,8 +32,10 @@ export function EndComponent({ finalWords, onReset }: Props) {
                 throw new Error(`Błąd serwera: ${response.statusText}`);
             }
 
-            console.log("Wysłano pomyślnie!");
-            onReset();
+            const data = await response.json();
+            console.log(data);
+            setTransformedWords(data);
+            setWordsTransformed(true)
 
         } catch (err) {
             console.error(err);
@@ -45,9 +50,14 @@ export function EndComponent({ finalWords, onReset }: Props) {
             <h2 className="title">Twoje Zdanie</h2>
 
             <div className="sentence-display">
-                {finalWords.map((w) => (
+                {!wordsTransformed && finalWords.map((w) => (
                     <span key={w.id} className={`sentence-word word-${w.type}`}>
                         {w.word}
+                    </span>
+                ))}
+                {wordsTransformed && transformedWords.map((w, index) => (
+                    <span key={finalWords[index].id} className={`sentence-word word-${finalWords[index].type}`}>
+                        {w}
                     </span>
                 ))}
                 <span>.</span>

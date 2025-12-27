@@ -1,4 +1,5 @@
-from .logger import logger
+from app.utils.logger import logger
+from app.schemas import WordInput
 
 def get_full_vocab() -> dict[str, list[str]]:
     vocabulary = {}
@@ -22,6 +23,175 @@ def get_vocab_by_type(vocab_type: str) -> list[str]:
     except KeyError:
         logger.error(f"Unknown vocab type: {vocab_type}")
         return []
+
+
+def _is_vowel(char: str) -> bool:
+    return char.lower() in 'aeiou'
+
+
+def _pluralize_noun(word: str, irregulars: dict) -> str:
+    if word in irregulars:
+        return irregulars[word]
+
+    if word.endswith(('s', 'x', 'z', 'ch', 'sh')):
+        return word + "es"
+    if word.endswith('y') and not _is_vowel(word[-2]):
+        return word[:-1] + "ies"
+
+    return word + "s"
+
+
+def _compare_adj(word: str, degree: str, irregulars: dict) -> str:
+    if degree == 'positive':
+        return word
+
+    if word in irregulars:
+        if degree == 'comparative': return irregulars[word]['comp']
+        if degree == 'superlative': return irregulars[word]['super']
+
+    is_short = len(word) < 6 or word.endswith('y')
+
+    if is_short:
+        suffix = "er" if degree == 'comparative' else "est"
+
+        if word.endswith('e'):
+            return word + suffix[1:]
+        if word.endswith('y'):
+            return word[:-1] + "i" + suffix
+        if len(word) > 2 and not _is_vowel(word[-1]) and _is_vowel(word[-2]) and not _is_vowel(word[-3]):
+            return word + word[-1] + suffix
+
+        return word + suffix
+    else:
+        prefix = "more " if degree == 'comparative' else "most "
+        return prefix + word
+
+
+def _conjugate_verb(word: str, meta: dict[str, str | bool], irregulars: dict) -> str:
+    tense = meta.get('tense', 'prsimple')
+    person = meta.get('person', 'first singular')
+    negation = meta.get('negation', False)
+
+    def get_past(w):
+        if w in irregulars: return irregulars[w].get('past', w + 'ed').split('/')[0]  #
+        if w.endswith('e'): return w + 'd'
+        if w.endswith('y') and not _is_vowel(w[-2]): return w[:-1] + 'ied'
+        return w + 'ed'
+
+    def get_participle(w):
+        if w in irregulars: return irregulars[w].get('participle', w + 'ed')
+        return get_past(w)
+
+    def get_ing(w):
+        if w == 'be': return 'being'
+        if w.endswith('ie'): return w[:-2] + 'ying'
+        if w.endswith('e'): return w[:-1] + 'ing'
+        return w + 'ing'
+
+    def get_s_form(w):
+        if w == 'have': return 'has'
+        if w == 'be': return 'is'
+        if w.endswith(('s', 'x', 'z', 'ch', 'sh', 'o')): return w + 'es'
+        if w.endswith('y') and not _is_vowel(w[-2]): return w[:-1] + 'ies'
+        return w + 's'
+
+    is_third_singular = person == 'third singular'
+    is_first_singular = person == 'first singular'
+
+
+    if tense == 'prsimple':
+        if word == 'be':
+            if negation:
+                if is_first_singular: return "am not"
+                if is_third_singular: return "is not"
+                return "are not"
+            else:
+                if is_first_singular: return "am"
+                if is_third_singular: return "is"
+                return "are"
+
+        if negation:
+            aux = "does" if is_third_singular else "do"
+            return f"{aux} not {word}"
+        else:
+            return get_s_form(word) if is_third_singular else word
+
+    elif tense == 'pasimple':
+        if word == 'be':
+            aux = "was" if (is_first_singular or is_third_singular) else "were"
+            return f"{aux} not" if negation else aux
+
+        if negation:
+            return f"did not {word}"
+        else:
+            raw_past = irregulars.get(word, {}).get('past', None)
+            if raw_past == "was/were":
+                return "was" if (is_first_singular or is_third_singular) else "were"
+            return get_past(word)
+
+    elif 'continous' in tense:
+        ing_form = get_ing(word)
+
+        if tense == 'prcontinous':
+            if is_first_singular:
+                aux = "am"
+            elif is_third_singular:
+                aux = "is"
+            else:
+                aux = "are"
+        else:
+            aux = "was" if (is_first_singular or is_third_singular) else "were"
+
+        if negation: aux += " not"
+        return f"{aux} {ing_form}"
+
+    elif 'perfect' in tense:
+        participle = get_participle(word)
+
+        if tense.startswith('pr'):
+            aux_base = "has" if is_third_singular else "have"
+        else:
+            aux_base = "had"
+
+        if tense.endswith('c'):
+            suffix = f"been {get_ing(word)}"
+        else:
+            suffix = participle
+
+        if negation: aux_base += " not"
+        return f"{aux_base} {suffix}"
+
+    return word
+
+
+
+def process_word(word_input: WordInput) -> str:
+    word_type = word_input.type
+    word_str = word_input.word.lower()
+    meta = word_input.meta if word_input.meta else {}
+
+    try:
+        if word_type == 'noun':
+            count = meta.get('count', 'singular')
+            if count == 'plural':
+                irregulars = vocab.get('noun', {}).get('irregular', {})
+                return _pluralize_noun(word_str, irregulars)
+            return word_str
+
+        elif word_type == 'adj':
+            degree = meta.get('degree', 'positive')
+            irregulars = vocab.get('adj', {}).get('irregular', {})
+            return _compare_adj(word_str, degree, irregulars)
+
+        elif word_type == 'verb':
+            irregulars = vocab.get('verb', {}).get('irregular', {})
+            return _conjugate_verb(word_str, meta, irregulars)
+
+        return word_str
+
+    except Exception as e:
+        logger.error(f"Error processing word {word_str}: {e}")
+        return word_str
 
 vocab = {
     "verb" : {
