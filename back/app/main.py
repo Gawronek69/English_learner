@@ -1,29 +1,34 @@
+import uvicorn
 from fastapi import FastAPI
-from back.app.utils.english_vocab import *
+from utils.english_vocab import *
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
 
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
 
-@app.get("/")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/words")
 async def root():
-    return {"vocab" : {
-        "verbs" : {
-            "regular" : verbs_regular,
-            "irregular" : verbs_irregular_dict,
-        },
-        "nouns" : {
-            "regular" : nouns_regular,
-            "irregular" : nouns_irregular_dict,
-        },
-        "adjectives" : {
-            "regular" : adjectives_regular,
-            "irregular" : adjectives_irregular_dict,
-        },
-        "prepositions" : prepositions,
-        "conjunctions" : conjunctions,
-    }}
+    return get_full_vocab()
 
+@app.get("/words/{vocab_type}")
+async def root(vocab_type: str):
+    return get_vocab_by_type(vocab_type)
 @app.post("/")
 async def root():
     return {"vocab" : {
     }}
 
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

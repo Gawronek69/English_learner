@@ -1,25 +1,27 @@
 import type { BaseWord, WordType } from "./WordInterfaces";
 
 export async function fetchWordsFromServer(type: WordType): Promise<BaseWord[]> {
-    await new Promise(resolve => setTimeout(resolve, 100));
+    const url: string = `http://127.0.0.1:8000/words/${type}`
 
+    try{
+        const response = await fetch(url)
 
-    const mockData: Record<string, BaseWord[]> = {
-        noun: [
-            { type: 'noun', word: 'cat' },
-            { type: 'noun', word: 'developer' }
-        ],
-        verb: [
-            { type: 'verb', word: 'codes' },
-            { type: 'verb', word: 'debugs' }
-        ],
-        adj:  [
-            { type: 'adj', word: 'fast' },
-            {  type: 'adj', word: 'lazy' }
-        ],
-        prep: [{ type: 'prep', word: 'on' }],
-        conj: [{  type: 'conj', word: 'and' }]
-    };
+        if (!response.ok) {
+            throw Error(`Could not fetch word from server: ${url}`);
+        }
 
-    return mockData[type] || [];
+        let data = await response.json();
+
+        data = data.map((word: string) => {return {type: type as WordType, word: word};});
+
+        console.log(data);
+
+        return data;
+
+    }
+    catch(error){
+        console.log(error)
+    }
+
+    return [];
 }
