@@ -13,6 +13,7 @@ export async function fetchWordsFromServer(type: WordType): Promise<BaseWord[]> 
         let data = await response.json();
 
         data = data.map((word: string) => {return {type: type as WordType, word: word};});
+        data = data.sort((a: BaseWord, b: BaseWord) => a.word.localeCompare(b.word));
 
         console.log(data);
 
