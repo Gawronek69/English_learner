@@ -18,7 +18,7 @@ export function EndComponent({ finalWords, onReset }: Props) {
         setError(null);
 
         try {
-            const API_URL = `http://127.0.0.1:8000/sentence`;
+            const API_URL = `/sentence`;
 
             const response = await fetch(API_URL, {
                 method: 'POST',

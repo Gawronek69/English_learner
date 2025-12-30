@@ -1,8 +1,11 @@
+import os
 import sys
 from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 current_file = Path(__file__).resolve()
@@ -47,6 +50,26 @@ async def root(sentence: list[WordInput]):
         processed_words.append(processed_word)
     logger.info("Processed words: %s", processed_words)
     return processed_words
+
+dist_dir = os.path.join(os.path.dirname(__file__), "..", "dist")
+
+if os.path.isdir(dist_dir):
+
+    assets_dir = os.path.join(dist_dir, "assets")
+    if os.path.isdir(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+
+    @app.get("/{full_path:path}")
+    async def serve_react_app(full_path: str):
+        file_path = os.path.join(dist_dir, full_path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+
+        return FileResponse(os.path.join(dist_dir, "index.html"))
+
+else:
+    print(f"BŁĄD: Nie znaleziono folderu {dist_dir}. Upewnij się, że ścieżka jest dobra i zrobiłeś 'npm run build'.")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

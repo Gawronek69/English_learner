@@ -8,8 +8,8 @@ export const createWord = (baseWord: BaseWord, id: number): Word => {
                 id: id,
                 ...baseWord,
                 meta : {
-                    tense : "present",
-                    person: "I",
+                    tense : "prsimple",
+                    person: "first singular",
                     negation: false
                 }
             }
@@ -33,13 +33,13 @@ export const createWord = (baseWord: BaseWord, id: number): Word => {
             return {
                 id: id,
                 ...baseWord,
-                meta : {}
+                meta : null
             }
         case "prep":
             return {
                 id: id,
                 ...baseWord,
-                meta : {}
+                meta : null
             }
         default:
             throw Error("Unknown word type " + baseWord.type)
