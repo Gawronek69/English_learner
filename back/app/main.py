@@ -67,9 +67,8 @@ if os.path.isdir(dist_dir):
             return FileResponse(file_path)
 
         return FileResponse(os.path.join(dist_dir, "index.html"))
-
 else:
-    print(f"BŁĄD: Nie znaleziono folderu {dist_dir}. Upewnij się, że ścieżka jest dobra i zrobiłeś 'npm run build'.")
+    raise FileNotFoundError("Dist dir not found")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
